@@ -1,0 +1,163 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "authorship_tag": "ABX9TyMgS5Qk3DTNgAba+AS9lOoR"
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "language_info": {
+      "name": "python"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "source": [
+        "Using NJ fish and wildlife to get a list of all NJ birds"
+      ],
+      "metadata": {
+        "id": "Lxi5OXl9mj5p"
+      }
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import requests\n",
+        "from bs4 import BeautifulSoup\n",
+        "import pandas as pd"
+      ],
+      "metadata": {
+        "id": "qoXezEbadHoW"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "base_dir = '/content/drive/MyDrive/F2024/Applied Data Science/Project 3/'"
+      ],
+      "metadata": {
+        "id": "qOx7Foa5dFap"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "url = \"https://www.nj.gov/dep/fgw/chkbirds.htm\"\n",
+        "\n",
+        "response = requests.get(url)\n",
+        "page_content = response.content\n",
+        "soup = BeautifulSoup(page_content, 'html.parser')\n",
+        "\n",
+        "table = soup.find('table', {'border': '1'})\n",
+        "\n",
+        "rows = table.find_all('tr')\n",
+        "\n",
+        "data = []\n",
+        "\n",
+        "headers = rows[0].find_all('th')\n",
+        "headers = [header.get_text(strip=True) for header in headers]\n",
+        "\n",
+        "if not headers:\n",
+        "    headers = ['COMMON NAME', 'SCIENTIFIC NAME', 'STATUS', 'SEASON']\n",
+        "\n",
+        "for row in rows[1:]:\n",
+        "    cols = row.find_all('td')\n",
+        "    cols = [col.get_text(strip=True) for col in cols]\n",
+        "    data.append(cols)\n",
+        "\n",
+        "df = pd.DataFrame(data, columns=headers)\n"
+      ],
+      "metadata": {
+        "id": "OQFwPwNDlx0P"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "status_labels = {\n",
+        "    'E': 'Endangered',\n",
+        "    'T': 'Threatened',\n",
+        "    'SC': 'Special Concern',\n",
+        "    'D': 'Decreasing',\n",
+        "    'INC': 'Increasing',\n",
+        "    'RP': 'Regional Priority',\n",
+        "    'S': 'Stable',\n",
+        "    'U': 'Undertermined',\n",
+        "    'I': 'Introduced',\n",
+        "    'P': 'Peripheral'\n",
+        "}"
+      ],
+      "metadata": {
+        "id": "6FVIFzR_lxvF"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "season_labels = {\n",
+        "    'b': 'breeding',\n",
+        "    'pb': 'possibly breeding',\n",
+        "    'm': 'migrant',\n",
+        "    'w': 'winter',\n",
+        "    'a': 'accidental',\n",
+        "    '*': 'present during breeding season-no confirmed nesting'\n",
+        "}"
+      ],
+      "metadata": {
+        "id": "dcEnEQ_vnFD5"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.shape"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "FnOJLiWMnMAk",
+        "outputId": "951f78c7-8eb2-490b-fe22-ae0ba9035f93"
+      },
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "(323, 4)"
+            ]
+          },
+          "metadata": {},
+          "execution_count": 4
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df.to_csv(base_dir + 'nj_birds.csv', index=False)"
+      ],
+      "metadata": {
+        "id": "-Gj1A2i0nMlA"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
